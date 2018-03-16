@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\git\cappucino\Main.C">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\git\cappucino\vdbConvolve.C">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\git\cappucino\vdbCpt.C">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\git\cappucino\vdbWave.C">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\git\cappucino\vdbWaveKernel.C">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\vdbReact.C">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\git\cappucino\vdbConvolve.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\git\cappucino\vdbCpt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\git\cappucino\vdbWave.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\git\cappucino\vdbWaveKernel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\vdbReact.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\git\cappucino\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{8E49B839-C3D7-3CA3-83EA-871E911FA841}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{4FB2229F-CA41-3470-A248-B0723912CA5F}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

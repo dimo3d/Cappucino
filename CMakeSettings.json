@@ -1,0 +1,74 @@
+{
+    // Informationen zu dieser Datei finden Sie unter https://go.microsoft.com//fwlink//?linkid=834763.
+    "configurations": [
+      {
+        "name": "x86-Debug",
+        "generator": "Visual Studio 14 2015",
+        "configurationType": "Debug",
+        "buildRoot": "${projectDir}\\CMakeBuild\\build\\${name}",
+        "cmakeCommandArgs": "",
+        "buildCommandArgs": "-m -v:minimal ",
+        "ctestCommandArgs": "",
+
+        "variables": [
+          {
+            "name": "Houdini_DIR",
+            "value": "C:\\Program Files\\Side Effects Software\\Houdini 16.5.323\\toolkit\\cmake"
+          },
+          {
+            "name": "CMAKE_CXX_COMPILER",
+            "value": "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\14.0\\VC\\bin\\cl.exe"
+          }
+        ]
+      },
+          {
+            "name": "x86-Release",
+            "generator": "Visual Studio 15 2017",
+            "configurationType": "Release",
+            "buildRoot": "${env.LOCALAPPDATA}\\CMakeBuild\\${workspaceHash}\\build\\${name}",
+            "cmakeCommandArgs": "",
+            "buildCommandArgs": "-m -v:minimal",
+            "ctestCommandArgs": ""
+          },
+      {
+        "name": "x64-Debug",
+        "generator": "Visual Studio 15 2017 Win64",
+        "configurationType": "Debug",
+        "buildRoot": "${projectDir}\\CMakeBuild\\build\\${name}",
+        "cmakeCommandArgs": "",
+        "buildCommandArgs": "-m -v:minimal",
+
+        "variables": [
+          {
+            "name": "Houdini_DIR",
+            "value": "C:\\Program Files\\Side Effects Software\\Houdini 16.5.323\\toolkit\\cmake"
+          },
+          {
+            "name": "CMAKE_CXX_COMPILER",
+            "value": "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\14.0\\VC\\bin\\cl.exe"
+          }
+        ],
+
+        "ctestCommandArgs": ""
+      },
+      {
+        "name": "x64-Release",
+        "generator": "Visual Studio 15 2017 Win64",
+        "configurationType": "Release",
+        "buildRoot": "${projectDir}\\CMakeBuild\\build\\${name}",
+        "cmakeCommandArgs": "",
+        "buildCommandArgs": "-m -v:minimal",
+        "variables": [
+          {
+            "name": "Houdini_DIR",
+            "value": "C:\\Program Files\\Side Effects Software\\Houdini 16.5.323\\toolkit\\cmake"
+          },
+          {
+            "name": "CMAKE_CXX_COMPILER",
+            "value": "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\14.0\\VC\\bin\\cl.exe"
+          }
+        ],
+        "ctestCommandArgs": ""
+      }
+        ]
+}

@@ -1,0 +1,16 @@
+.vs/
+CMakeBuild/3bf75c55-b71f-8930-b75c-a15198c412e9/
+*.log
+*.o
+*.obj
+*.pdb
+*.lastbuildstate
+*.tlog
+*.bin
+CMakeBuild/build/x64-Debug/sesitag_input
+*.check_cache
+*.stamp
+CMakeBuild/build/x64-Debug/CMakeFiles/
+CMakeBuild/build/x64-Release/CMakeFiles/
+*.exp
+*.lib

@@ -1,0 +1,33 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ALL_BUILD", "ALL_BUILD.vcxproj", "{05DB6AA6-FC22-35A7-9ECD-E24C6E712DAD}"
+	ProjectSection(ProjectDependencies) = postProject
+		{FA230BFC-F393-3C3D-91FE-5C96CBEFF1AE} = {FA230BFC-F393-3C3D-91FE-5C96CBEFF1AE}
+		{C5A56EFE-CE15-3425-BE2E-3D96B1347B4A} = {C5A56EFE-CE15-3425-BE2E-3D96B1347B4A}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Cappucino", "Cappucino.vcxproj", "{FA230BFC-F393-3C3D-91FE-5C96CBEFF1AE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C5A56EFE-CE15-3425-BE2E-3D96B1347B4A} = {C5A56EFE-CE15-3425-BE2E-3D96B1347B4A}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ZERO_CHECK", "ZERO_CHECK.vcxproj", "{C5A56EFE-CE15-3425-BE2E-3D96B1347B4A}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{05DB6AA6-FC22-35A7-9ECD-E24C6E712DAD}.Debug|x64.ActiveCfg = Debug|x64
+		{FA230BFC-F393-3C3D-91FE-5C96CBEFF1AE}.Debug|x64.ActiveCfg = Debug|x64
+		{FA230BFC-F393-3C3D-91FE-5C96CBEFF1AE}.Debug|x64.Build.0 = Debug|x64
+		{C5A56EFE-CE15-3425-BE2E-3D96B1347B4A}.Debug|x64.ActiveCfg = Debug|x64
+		{C5A56EFE-CE15-3425-BE2E-3D96B1347B4A}.Debug|x64.Build.0 = Debug|x64
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal
