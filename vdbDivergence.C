@@ -231,7 +231,7 @@ SOP_VdbDivergence::cookMySop(OP_Context &context)
 			surface_velocity_1 = (velocity_fastSampler->wsSample(color_grid->transform().indexToWorld(iter.getCoord() + openvdb::Coord(0, 0, -1))));
 			surface_velocity_1 = surface_velocity_1 - surface_velocity_1.projection(normal);
 			float dwdz = surface_velocity_0.z() - surface_velocity_1.z();
-			float divergence = (dudx + dvdy + dwdz) / (2.0f * color_grid->voxelSize().x());
+			float divergence = -(dudx + dvdy + dwdz) / (2.0f * color_grid->voxelSize().x());
 			iter.setValue(iter.getValue() + iter.getValue() * divergence * dt);
 		}
 	};
