@@ -149,14 +149,20 @@ CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 //Value Computed by CMake
 Cappucino_BINARY_DIR:STATIC=C:/git/cappucino/CMakeBuild/build/x64-Release
 
-//Dependencies for target
-Cappucino_LIB_DEPENDS:STATIC=
+//Dependencies for the target
+Cappucino_LIB_DEPENDS:STATIC=general;C:/Program Files/Side Effects Software/Houdini 16.5.323/custom/houdini/dsolib/openvdb_sesi.lib;general;C:/Program Files/Side Effects Software/Houdini 16.5.323/custom/houdini/dsolib/half.lib;
 
 //Value Computed by CMake
 Cappucino_SOURCE_DIR:STATIC=C:/git/cappucino
 
 //No help, variable specified on the command line.
 Houdini_DIR:UNINITIALIZED=C:/Program Files/Side Effects Software/Houdini 16.5.323/toolkit/cmake
+
+//Path to a library.
+OPENVDB:FILEPATH=OPENVDB-NOTFOUND
+
+//Path to a library.
+OPENVDB_POINTS:FILEPATH=OPENVDB_POINTS-NOTFOUND
 
 
 ########################
