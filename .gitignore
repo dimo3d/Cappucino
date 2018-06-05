@@ -14,3 +14,4 @@ CMakeBuild/build/x64-Debug/CMakeFiles/
 CMakeBuild/build/x64-Release/CMakeFiles/
 *.exp
 *.lib
+backup/
