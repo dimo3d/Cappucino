@@ -1,41 +1,12 @@
+
 #include "vdbRemove_Divergence.h"
-#include <limits.h>
-#include <SYS/SYS_Math.h>
 
 
-#include <UT/UT_Interrupt.h>
 
-#include <OP/OP_Operator.h>
-#include <OP/OP_OperatorTable.h>
-
-#include <GU/GU_Detail.h>
-#include <GEO/GEO_PrimPoly.h>
-
-#include <PRM/PRM_Include.h>
-#include <CH/CH_LocalVariable.h>
-
-#include <OP/OP_AutoLockInputs.h>
-
-#include <GU/GU_PrimVDB.h>
-#include <openvdb/math/ConjGradient.h> // for JacobiPreconditioner
-#include <openvdb/tools/GridOperators.h>
-#include <openvdb/tools/LevelSetUtil.h> // for tools::sdfInteriorMask()
-#include <openvdb/tools/PoissonSolver.h>
-#include <openvdb/tools/GridTransformer.h>
-#include <openvdb/tools/Prune.h>
-#include <openvdb/tools/Composite.h>
-#include <openvdb/openvdb.h>
-#include <ParmFactory.h>
-#include <Utils.h>
 using namespace VdbCappucino;
 namespace hvdb = openvdb_houdini;
 namespace hutil = houdini_utils;
-using ColorAccessor = typename openvdb::Vec3SGrid::ConstAccessor;
-using Color_fastSampler = openvdb::tools::GridSampler<openvdb::Vec3SGrid::ConstAccessor, openvdb::tools::BoxSampler>;
-using VelocityAccessor = typename openvdb::Vec3SGrid::ConstAccessor;
-using Velocity_fastSampler = openvdb::tools::GridSampler<openvdb::Vec3SGrid::ConstAccessor, openvdb::tools::BoxSampler>;
-using GradientAccessor = typename openvdb::Vec3SGrid::ConstAccessor;
-using Gradient_fastSampler = openvdb::tools::GridSampler<openvdb::Vec3SGrid::ConstAccessor, openvdb::tools::BoxSampler>;
+
 
 // label node inputs, 0 corresponds to first input, 1 to the second one
 const char *
@@ -112,25 +83,34 @@ namespace {
 	};
 
 
-	template<typename VectorGridType>
+	//template<typename VectorGridType>
 	inline bool
-		removeDivergence(VectorGridType& velocityGrid, openvdb::Vec3SGrid::ConstPtr gradient_grid, openvdb::FloatGrid::ConstPtr external_divergencegrid, const int iterations, hvdb::Interrupter& interrupter)
+		removeDivergence(openvdb::Vec3SGrid::Ptr velocityGrid, openvdb::Vec3SGrid::ConstPtr gradient_grid, openvdb::FloatGrid::ConstPtr external_divergencegrid, const int iterations, hvdb::Interrupter& interrupter)
 	{
-		typedef typename VectorGridType::TreeType       VectorTreeType;
-		typedef typename VectorTreeType::LeafNodeType   VectorLeafNodeType;
-		typedef typename VectorGridType::ValueType      VectorType;
-		typedef typename VectorType::ValueType          VectorElementType;
+		typedef openvdb::Vec3SGrid::TreeType       myVectorTreeType;
+		typedef myVectorTreeType::LeafNodeType   myVectorLeafNodeType;
+		typedef openvdb::Vec3SGrid::ValueType      myVectorType;
+		typedef myVectorType::ValueType          myVectorElementType;
 
-		typedef typename VectorGridType::template ValueConverter<VectorElementType>::Type   ScalarGrid;
-		typedef typename ScalarGrid::TreeType                                               ScalarTree;
+		typedef openvdb::FloatGrid   myScalarGrid;
+		typedef openvdb::FloatGrid::TreeType                                               myScalarTree;
 
 		//openvdb::tools::Divergence<VectorGridType> divergenceOp(velocityGrid);
 		//typename ScalarGrid::Ptr divGrid = divergenceOp.process();
-		openvdb::VectorGrid::Ptr divGrid = velocityGrid.deepCopy();
-		openvdb::tools::foreach(divGrid->beginValueOn(), Diverge(divGrid->transform(), velocityGrid, gradient_grid), false, 0);
+		
+		
 		openvdb::FloatGrid::Ptr
 			sourceGrid = external_divergencegrid->deepCopy();
-		openvdb::FloatGrid::Ptr	targetGrid = divGrid->deepCopy();
+		openvdb::FloatGrid::Grid::Ptr divGrid = openvdb::FloatGrid::Grid::create(*velocityGrid);
+
+		std::string gridName = velocityGrid->getName();
+		// Iterate over all active values.
+	
+		
+	
+		openvdb::tools::transformValues(velocityGrid->cbeginValueOn(), *divGrid, Diverge(velocityGrid->transform(), velocityGrid, gradient_grid));
+
+		openvdb::FloatGrid::Grid::Ptr targetGrid = openvdb::FloatGrid::Grid::create(*divGrid);
 		// Get the source and target grids' index space to world space transforms.
 		const openvdb::math::Transform
 			&sourceXform = sourceGrid->transform(),
@@ -161,21 +141,21 @@ namespace {
 		// Compute the difference between corresponding voxels of aGrid and bGrid
 		// and store the result in aGrid, leaving bGrid empty.
 		diffDivergence->tree().combine(targetGrid->tree(), Local::diff);
-		openvdb::math::pcg::State state = openvdb::math::pcg::terminationDefaults<VectorElementType>();
+		openvdb::math::pcg::State state = openvdb::math::pcg::terminationDefaults<myVectorElementType>();
 		state.iterations = iterations;
-		state.relativeError = state.absoluteError = openvdb::math::Delta<VectorElementType>::value();
+		state.relativeError = state.absoluteError = openvdb::math::Delta<myVectorElementType>::value();
 
 		typedef openvdb::math::pcg::JacobiPreconditioner<openvdb::tools::poisson::LaplacianMatrix> PCT;
 
-		typename ScalarTree::Ptr pressure =
+		openvdb::FloatTree::Ptr pressure =
 			openvdb::tools::poisson::solveWithBoundaryConditionsAndPreconditioner<PCT>(
 				diffDivergence->tree(), DirichletOp(), state, interrupter);
 
-		typename ScalarGrid::Ptr pressureGrid = ScalarGrid::create(pressure);
-		pressureGrid->setTransform(velocityGrid.transform().copy());
+		openvdb::FloatGrid::Ptr pressureGrid = openvdb::FloatGrid::create(pressure);
+		pressureGrid->setTransform(velocityGrid->transform().copy());
 
-		openvdb::tools::Gradient<ScalarGrid> gradientOp(*pressureGrid);
-		typename VectorGridType::Ptr gradientOfPressure = gradientOp.process();
+		openvdb::tools::Gradient<openvdb::FloatGrid> gradientOp(*pressureGrid);
+		openvdb::Vec3SGrid::Ptr gradientOfPressure = gradientOp.process();
 
 		struct ProjectVectorToSurface {
 			openvdb::Vec3SGrid::ConstPtr grad_grid;
@@ -205,19 +185,19 @@ namespace {
 		openvdb::tools::foreach(gradientOfPressure->beginValueOn(), ProjectVectorToSurface( gradient_grid, gradientOfPressure->transform()), true, 0);
 
 		{
-			std::vector<VectorLeafNodeType*> velocityNodes;
-			velocityGrid.tree().getNodes(velocityNodes);
+			std::vector<myVectorLeafNodeType*> velocityNodes;
+			velocityGrid->tree().getNodes(velocityNodes);
 
-			std::vector<const VectorLeafNodeType*> gradientNodes;
+			std::vector<const myVectorLeafNodeType*> gradientNodes;
 			gradientNodes.reserve(velocityNodes.size());
 			gradientOfPressure->tree().getNodes(gradientNodes);
 
-			const double dx = velocityGrid.transform().voxelSize()[0];
+			const double dx = velocityGrid->transform().voxelSize()[0];
 
 			tbb::parallel_for(tbb::blocked_range<size_t>(0, velocityNodes.size()),
-				CorrectVelocityOp<VectorTreeType>(&velocityNodes[0], &gradientNodes[0], dx));
+				CorrectVelocityOp<myVectorTreeType>(&velocityNodes[0], &gradientNodes[0], dx));
 			
-			openvdb::tools::foreach(velocityGrid.beginValueOn(), ProjectVectorToSurface(gradient_grid, velocityGrid.transform()), true, 0);
+			openvdb::tools::foreach(velocityGrid->beginValueOn(), ProjectVectorToSurface(gradient_grid, velocityGrid->transform()), true, 0);
 
 			
 		}
@@ -310,10 +290,10 @@ SOP_VdbRemove_Divergence::cookMySop(OP_Context& context)
 
 				vdbIt->makeGridUnique();
 
-				openvdb::Vec3fGrid& grid = static_cast<openvdb::Vec3fGrid&>(vdbIt->getGrid());
-
-				if (!removeDivergence(grid, gradient_grid, divergence_grid, iterations, boss) && !boss.wasInterrupted()) {
-					const std::string msg = grid.getName() + " did not fully converge.";
+				//openvdb::Vec3fGrid& grid = static_cast<openvdb::Vec3fGrid&>(vdbIt->getGrid());
+				openvdb::Vec3fGrid::Ptr velocity_grid = openvdb::gridPtrCast<openvdb::Vec3fGrid>(vdbIt->getGridPtr());
+				if (!removeDivergence(velocity_grid, gradient_grid, divergence_grid, iterations, boss) && !boss.wasInterrupted()) {
+					const std::string msg = velocity_grid->getName() + " did not fully converge.";
 					addWarning(SOP_MESSAGE, msg.c_str());
 				}
 			}

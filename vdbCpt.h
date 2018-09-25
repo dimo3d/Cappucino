@@ -1,12 +1,13 @@
 #pragma once
 #include <SOP/SOP_Node.h>
+#include <SOP_NodeVDB.h>
 #include <openvdb/tools/GridOperators.h>
 #include <openvdb/Grid.h>
 #include <openvdb/tools/Interpolation.h>
 #include <openvdb/tools/ValueTransformer.h>
 
 namespace VdbCappucino {
-	class SOP_VdbCpt : public SOP_Node
+	class SOP_VdbCpt : public openvdb_houdini::SOP_NodeVDB
 	{
 	public:
 		// node contructor for HDK

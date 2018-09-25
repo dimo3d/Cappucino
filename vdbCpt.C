@@ -19,9 +19,11 @@
 #include <GU/GU_PrimVDB.h>
 
 #include <openvdb/openvdb.h>
-
+#include <Utils.h>
+#include <ParmFactory.h>
 using namespace VdbCappucino;
-
+namespace hvdb = openvdb_houdini;
+namespace hutil = houdini_utils;
 // label node inputs, 0 corresponds to first input, 1 to the second one
 const char *
 SOP_VdbCpt::inputLabel(unsigned idx) const
@@ -34,19 +36,7 @@ SOP_VdbCpt::inputLabel(unsigned idx) const
 	}
 }
 
-// define parameter for debug option
-static PRM_Name debugPRM("debug", "Print debug information"); // internal name, UI name
-static PRM_Name doworldPRM("doworldpos", "create Vector to World Pos"); 
-static PRM_Name maxcellsPRM("maxcells", "max cells value");
-static PRM_Default maxcellsDefault(3.33);
-															  // assign parameter to the interface, which is array of PRM_Template objects
-PRM_Template SOP_VdbCpt::myTemplateList[] =
-{
-	PRM_Template(PRM_TOGGLE, 1, &debugPRM, PRMzeroDefaults), // type (checkbox), size (one in our case, but rgb/xyz values would need 3), pointer to a PRM_Name describing the parameter name, default value (0 - disabled)
-	PRM_Template(PRM_FLT, 1, &maxcellsPRM, &maxcellsDefault),
-	PRM_Template(PRM_TOGGLE, 1, &doworldPRM, PRMzeroDefaults),
-	PRM_Template() // at the end there needs to be one empty PRM_Template object
-};
+
 
 // constructors, destructors, usually there is no need to really modify anything here, the constructor's job is to ensure the node is put into the proper network
 OP_Node *
@@ -55,7 +45,7 @@ SOP_VdbCpt::myConstructor(OP_Network *net, const char *name, OP_Operator *op)
 	return new SOP_VdbCpt(net, name, op);
 }
 
-SOP_VdbCpt::SOP_VdbCpt(OP_Network *net, const char *name, OP_Operator *op) : SOP_Node(net, name, op) {}
+SOP_VdbCpt::SOP_VdbCpt(OP_Network *net, const char *name, OP_Operator *op) : openvdb_houdini::SOP_NodeVDB(net, name, op) {}
 
 SOP_VdbCpt::~SOP_VdbCpt() {}
 
@@ -63,128 +53,8 @@ SOP_VdbCpt::~SOP_VdbCpt() {}
 OP_ERROR
 SOP_VdbCpt::cookMySop(OP_Context &context)
 {
-	// we must lock our inputs before we try to access their geometry, OP_AutoLockInputs will automatically unlock our inputs when we return
-	OP_AutoLockInputs inputs(this);
-	if (inputs.lock(context) >= UT_ERROR_ABORT)
-		return error();
 	
-	// duplicate our incoming geometry
-	duplicateSource(0, context);
 	float maxCells = MAXCELLS(context.getTime());
-	// check for interrupt - interrupt scope closes automatically when 'progress' is destructed.
-	UT_AutoInterrupt progress("Activating voxels...");
-
-	// get pointer to geometry from second input
-	const GU_Detail *cpm_gdp = inputGeo(1);
-	const GU_Detail *dist_gdp = inputGeo(2);
-	// Get the first VDB primitive in the geometry
-
-	int numberOfFoundVdbs = 0;
-	GEO_PrimVDB* vdbPrim = NULL;
-	const GEO_PrimVDB* cpmPrim = NULL;
-	const GEO_PrimVDB* distPrim = NULL;
-	openvdb::GridBase::Ptr color_baseGrid;
-	openvdb::GridBase::ConstPtr cpm_baseGrid;
-	openvdb::GridBase::ConstPtr dist_baseGrid;
-	openvdb::Vec3SGrid::Ptr grid;
-	openvdb::Vec3SGrid::Ptr grid_old;
-	openvdb::Vec3SGrid::ConstPtr cpm_grid;
-	openvdb::FloatGrid::ConstPtr dist_grid;
-
-	for (GA_Iterator it(gdp->getPrimitiveRange()); !it.atEnd(); it.advance())
-	{
-		GEO_Primitive* prim = gdp->getGEOPrimitive(it.getOffset());
-		if (dynamic_cast<GEO_PrimVDB *>(prim))
-		{
-			vdbPrim = dynamic_cast<GEO_PrimVDB *>(prim);
-			if (vdbPrim->hasGrid()) {
-				vdbPrim->makeGridUnique();
-				color_baseGrid = vdbPrim->getGridPtr();
-				grid = openvdb::gridPtrCast<openvdb::Vec3SGrid>(color_baseGrid);
-				if ((grid) && (grid->getName() == "Cd")) {
-					numberOfFoundVdbs += 1;
-					break;
-				}
-			}
-		}
-	}
-
-	for (GA_Iterator it(gdp->getPrimitiveRange()); !it.atEnd(); it.advance())
-	{
-		GEO_Primitive* prim = gdp->getGEOPrimitive(it.getOffset());
-		if (dynamic_cast<GEO_PrimVDB *>(prim))
-		{
-			vdbPrim = dynamic_cast<GEO_PrimVDB *>(prim);
-			if (vdbPrim->hasGrid()) {
-				vdbPrim->makeGridUnique();
-				color_baseGrid = vdbPrim->getGridPtr();
-				grid_old = openvdb::gridPtrCast<openvdb::Vec3SGrid>(color_baseGrid);
-				if (grid_old && (grid_old->getName() == "Cd_old")) {
-					numberOfFoundVdbs += 1;
-
-					break;
-				}
-			}
-		}
-	}
-	for (GA_Iterator it(cpm_gdp->getPrimitiveRange()); !it.atEnd(); it.advance())
-	{
-		const GEO_Primitive* prim = cpm_gdp->getGEOPrimitive(it.getOffset());
-		if (dynamic_cast<const GEO_PrimVDB *>(prim))
-		{
-			cpmPrim = dynamic_cast<const GEO_PrimVDB *>(prim);
-			if (cpmPrim->hasGrid()) {
-				//vdbPrim->makeGridUnique();
-				cpm_baseGrid = cpmPrim->getConstGridPtr();
-				cpm_grid = openvdb::gridConstPtrCast<openvdb::Vec3SGrid>(cpm_baseGrid);
-				if (cpm_grid) {
-					numberOfFoundVdbs += 1;
-					break;
-				}
-			}
-		}
-	}
-	for (GA_Iterator it(dist_gdp->getPrimitiveRange()); !it.atEnd(); it.advance())
-	{
-		const GEO_Primitive* prim = dist_gdp->getGEOPrimitive(it.getOffset());
-		if (dynamic_cast<const GEO_PrimVDB *>(prim))
-		{
-			distPrim = dynamic_cast<const GEO_PrimVDB *>(prim);
-			if (distPrim->hasGrid()) {
-				//vdbPrim->makeGridUnique();
-				dist_baseGrid = distPrim->getConstGridPtr();
-				dist_grid = openvdb::gridConstPtrCast<openvdb::FloatGrid>(dist_baseGrid);
-				if (dist_grid) {
-					numberOfFoundVdbs += 1;
-					break;
-				}
-			}
-		}
-	}
-
-	// Make sure we got a valid prim
-	if ((!vdbPrim) || (!cpmPrim) || (!distPrim))
-	{
-		printf("cpt Number of Found Vdbs %i\n", numberOfFoundVdbs);
-		addError(SOP_MESSAGE, "Input geometry must contain a VDB");
-		return error();
-	}
-
-	// Docs say to do this in case the grid is shared
-
-
-
-	// Try to get the vdbs grid
-
-
-	if ((!grid) || (!cpm_grid) || (!grid_old) || (!dist_grid)){
-		addError(SOP_MESSAGE, "Input geometry must contain a VDB");
-		return error();
-	}
-	//openvdb::Vec3SGrid::Ptr grid_buffer = grid->copy();
-	//openvdb::Vec3SGrid::Ptr grid_buffer_old = grid_old->copy();
-
-
 
 	class ClosestPointOp {
 	private:
@@ -264,12 +134,110 @@ SOP_VdbCpt::cookMySop(OP_Context &context)
 			}
 		}
 	};
-	openvdb::tools::foreach(grid->beginValueOn(), ClosestPointOp(grid, grid, cpm_grid, dist_grid, DOWORLDCOORDS(), maxCells), true, true);
-	//openvdb::tools::foreach(grid_old->beginValueOn(), ClosestPointOp(grid_old, grid_old, cpm_grid, dist_grid, maxCells), true, false);
+
+	try {
+		hutil::ScopedInputLock lock(*this, context);
+		duplicateSourceStealable(0, context);
+
+		const fpreal time = context.getTime();
+
+		hvdb::Interrupter boss("CPT ");
 
 
-	//grid_buffer->clear();
-	//grid_buffer_old->clear();
+		UT_String GroupStr;
+		evalString(GroupStr, "group", 0, time);
+		const GA_PrimitiveGroup* Group = matchGroup(*gdp, GroupStr.toStdString());
+
+
+		const GU_Detail* cptGdp = inputGeo(1, context);
+		const GU_Detail* distGdp = inputGeo(2, context);
+
+		UT_String cptGroupStr;
+		evalString(cptGroupStr, "cptGroup", 0, time);
+		const GA_PrimitiveGroup* cptGroup = matchGroup(const_cast<GU_Detail&>(*cptGdp), cptGroupStr.toStdString());
+
+		UT_String distGroupStr;
+		evalString(distGroupStr, "distanceGroup", 0, time);
+		const GA_PrimitiveGroup* distGroup = matchGroup(const_cast<GU_Detail&>(*distGdp), distGroupStr.toStdString());
+
+		bool processedVDB = false;
+		//get gradient
+		hvdb::VdbPrimCIterator gIt(cptGdp, cptGroup);
+		const GU_PrimVDB *cptPrim = *gIt;
+
+		if (!cptPrim) {
+			addError(SOP_MESSAGE, "Missing cpt grid");
+			return error();
+		}
+		if (cptPrim->getStorageType() != UT_VDB_VEC3F) {
+			addError(SOP_MESSAGE, "Expected cpt grid to be of type Vec3f");
+			return error();
+		}
+
+		//get gradient
+		hvdb::VdbPrimCIterator dIt(distGdp, distGroup);
+		const GU_PrimVDB *distPrim = *dIt;
+
+		if (!distPrim) {
+			addError(SOP_MESSAGE, "Missing distance grid");
+			return error();
+		}
+		if (distPrim->getStorageType() != UT_VDB_FLOAT) {
+			addError(SOP_MESSAGE, "Expected gradient grid to be of type Float");
+			return error();
+		}
+
+		openvdb::GridBase::ConstPtr cpt_baseGrid;
+		openvdb::Vec3SGrid::ConstPtr cpt_grid;
+		cpt_baseGrid = cptPrim->getConstGridPtr();
+		cpt_grid = openvdb::gridConstPtrCast<openvdb::Vec3SGrid>(cpt_baseGrid);
+		if (!cpt_grid) {
+			addError(SOP_MESSAGE, "Missing cpt grid");
+			return error();
+		}
+
+		openvdb::GridBase::ConstPtr dist_baseGrid;
+		openvdb::FloatGrid::ConstPtr dist_grid;
+		dist_baseGrid = distPrim->getConstGridPtr();
+		dist_grid = openvdb::gridConstPtrCast<openvdb::FloatGrid>(dist_baseGrid);
+		if (!dist_grid) {
+			addError(SOP_MESSAGE, "Missing distance grid");
+			return error();
+		}
+
+		//process
+		for (hvdb::VdbPrimIterator vdbIt(gdp, Group); vdbIt; ++vdbIt) {
+
+			if (boss.wasInterrupted()) break;
+
+			if (vdbIt->getGrid().type() == openvdb::Vec3fGrid::gridType()) {
+
+				processedVDB = true;
+
+				vdbIt->makeGridUnique();
+
+				//openvdb::Vec3fGrid& grid =
+				openvdb::Vec3fGrid::Ptr grid = openvdb::gridPtrCast<openvdb::Vec3fGrid>(vdbIt->getGridPtr());
+				openvdb::Vec3fGrid::Ptr grid_copy = grid->deepCopy();
+
+				//openvdb::tools::foreach(grid->beginValueOn(), Diverge(grid->transform(),velocity_grid,gradient_grid, dt), false, 0);
+				openvdb::tools::foreach(grid->beginValueOn(), ClosestPointOp(grid, grid_copy, cpt_grid, dist_grid, DOWORLDCOORDS(), maxCells), true, false);
+				grid_copy->clear();
+				grid->pruneGrid();
+			}
+		}
+
+		if (!processedVDB && !boss.wasInterrupted()) {
+			addWarning(SOP_MESSAGE, "No Vec3f VDBs found.");
+		}
+	}
+	catch (std::exception& e) {
+		addError(SOP_MESSAGE, e.what());
+	}
 
 	return error();
+
+
+
+
 }

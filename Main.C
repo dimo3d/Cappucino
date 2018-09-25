@@ -68,11 +68,36 @@ void newSopOperator(OP_OperatorTable *table)
 	// after addOperator(), 'table' will take ownership of 'op'
 	table->addOperator(op_waveKernel);
 
+	hutil::ParmList parms_cpt;
+	parms_cpt.add(hutil::ParmFactory(PRM_STRING, "group", "Group")
+		.setHelpText("Specify grids to process")
+		.setChoiceList(&hutil::PrimGroupMenuInput1));
+	
+	parms_cpt.add(hutil::ParmFactory(PRM_STRING, "cptGroup", "CPTGroup")
+		.setHelpText("Specify CPT Grid")
+		.setChoiceList(&hutil::PrimGroupMenuInput2));
+
+	parms_cpt.add(hutil::ParmFactory(PRM_STRING, "distanceGroup", "DistanceGroup")
+		.setHelpText("Specify Distance Grid")
+		.setChoiceList(&hutil::PrimGroupMenuInput3));
+
+	parms_cpt.add(hutil::ParmFactory(PRM_TOGGLE, "debug", "Debug")
+		.setDefault(PRMzeroDefaults)
+		.setRange(PRM_RANGE_RESTRICTED, 0, PRM_RANGE_UI, 1));
+
+	parms_cpt.add(hutil::ParmFactory(PRM_INT_J, "maxcells", "maxcells")
+		.setDefault(2)
+		.setRange(PRM_RANGE_RESTRICTED, 1, PRM_RANGE_UI, 50));
+
+	parms_cpt.add(hutil::ParmFactory(PRM_TOGGLE, "doworldpos", "doworldpos")
+		.setDefault(PRMzeroDefaults)
+		.setRange(PRM_RANGE_RESTRICTED, 0, PRM_RANGE_UI, 1));
+
 	op_cpt = new OP_Operator(
 		"vdbcpt",                      // internal name, needs to be unique in OP_OperatorTable (table containing all nodes for a network type - SOPs in our case, each entry in the table is an object of class OP_Operator which basically defines everything Houdini requires in order to create nodes of the new type)
 		"VDB CPT",                   // UI name
 		SOP_VdbCpt::myConstructor,     // how to build the node - A class factory function which constructs nodes of this type
-		SOP_VdbCpt::myTemplateList,    // my parameters - An array of PRM_Template objects defining the parameters to this operator
+		parms_cpt.get(),    // my parameters - An array of PRM_Template objects defining the parameters to this operator
 		3,                                            // min # of sources
 		3);                                           // max # of sources
 
@@ -110,19 +135,32 @@ void newSopOperator(OP_OperatorTable *table)
 	// after addOperator(), 'table' will take ownership of 'op'
 	table->addOperator(op_react);
 
+	hutil::ParmList parms_divergence;
+	parms_divergence.add(hutil::ParmFactory(PRM_STRING, "velocitygroup", "Velocity Group")
+		.setHelpText("Specify velocity vector grids to process")
+		.setChoiceList(&hutil::PrimGroupMenuInput1));
+
+	parms_divergence.add(hutil::ParmFactory(PRM_STRING, "gradientgroup", "Gradient Group")
+		.setHelpText("Specify gradient of distance field")
+		.setChoiceList(&hutil::PrimGroupMenuInput2));
+
+
+
 	op_divergence = new OP_Operator(
 		"vdbdivergence",                      // internal name, needs to be unique in OP_OperatorTable (table containing all nodes for a network type - SOPs in our case, each entry in the table is an object of class OP_Operator which basically defines everything Houdini requires in order to create nodes of the new type)
 		"VDB Divergence",                   // UI name
 		SOP_VdbDivergence::myConstructor,     // how to build the node - A class factory function which constructs nodes of this type
-		SOP_VdbDivergence::myTemplateList,    // my parameters - An array of PRM_Template objects defining the parameters to this operator
-		3,                                            // min # of sources
-		3);                                           // max # of sources
+		parms_divergence.get(),    // my parameters - An array of PRM_Template objects defining the parameters to this operator
+		2,                                            // min # of sources
+		2);                                           // max # of sources
 
 													  // place this operator under the VDB submenu in the TAB menu.
 	op_divergence->setOpTabSubMenuPath("VDB");
 
 	// after addOperator(), 'table' will take ownership of 'op'
 	table->addOperator(op_divergence);
+	
+	
 	hutil::ParmList parms;
 	parms.add(hutil::ParmFactory(PRM_STRING, "velocitygroup", "Velocity Group")
 		.setHelpText("Specify velocity vector grids to process")
@@ -142,11 +180,7 @@ void newSopOperator(OP_OperatorTable *table)
 
 
 
-	// Register this operator.
-	//hvdb::OpenVDBOpFactory("OpenVDB Remove Divergence",
-	//	SOP_OpenVDB_Remove_Divergence::factory, parms, *table)
-	//	.addInput("Vector field VDBs")
-	//	.addOptionalInput("Optional collider VDB or geometry");
+
 	op_remove_divergence = new OP_Operator(
 		"vdbremove_divergence",                      // internal name, needs to be unique in OP_OperatorTable (table containing all nodes for a network type - SOPs in our case, each entry in the table is an object of class OP_Operator which basically defines everything Houdini requires in order to create nodes of the new type)
 		"VDB Remove Divergence",                   // UI name
