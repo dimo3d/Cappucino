@@ -41,7 +41,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <AdditionalOptions>%(AdditionalOptions)  /bigobj /w14996 /Zc:strictStrings</AdditionalOptions>
-      <AdditionalIncludeDirectories>C:\Program Files\Side Effects Software\Houdini 16.5.323\toolkit\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\boost\boost_1_64_0;C:\Program Files\Side Effects Software\Houdini 16.5.323\toolkit\include;C:\git\openvdb\openvdb_houdini\houdini;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>Release/</AssemblerListingLocation>
       <CompileAs>CompileAsCpp</CompileAs>
       <DisableSpecificWarnings>4355</DisableSpecificWarnings>
@@ -109,12 +109,16 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\openvdb\openvdb_houdini\houdini\ParmFactory.h" />
+    <ClInclude Include="..\..\..\..\openvdb\openvdb_houdini\houdini\SOP_NodeVDB.h" />
+    <ClInclude Include="..\..\..\..\openvdb\openvdb_houdini\houdini\Utils.h" />
     <ClInclude Include="C:\git\cappucino\vdbConvolve.h" />
     <ClInclude Include="C:\git\cappucino\vdbCpt.h" />
     <ClInclude Include="C:\git\cappucino\vdbWave.h" />
     <ClInclude Include="C:\git\cappucino\vdbWaveKernel.h" />
     <ClInclude Include="C:\git\cappucino\vdbDivergence.h" />
     <ClInclude Include="C:\git\cappucino\vdbReact.h" />
+    <ClCompile Include="..\..\..\vdbRemove_Divergence.c" />
     <ClCompile Include="C:\git\cappucino\Main.C" />
     <ClCompile Include="C:\git\cappucino\vdbConvolve.C" />
     <ClCompile Include="C:\git\cappucino\vdbCpt.C" />
