@@ -25,6 +25,18 @@
     <ClCompile Include="..\..\..\vdbRemove_Divergence.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\ParmFactory.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\SOP_NodeVDB.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\GU_PrimVDB.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Utils.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="C:\git\cappucino\vdbConvolve.h">
@@ -45,13 +57,16 @@
     <ClInclude Include="C:\git\cappucino\vdbReact.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\openvdb\openvdb_houdini\houdini\Utils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\..\openvdb\openvdb_houdini\houdini\SOP_NodeVDB.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\openvdb\openvdb_houdini\houdini\ParmFactory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\vdbRemove_Divergence.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

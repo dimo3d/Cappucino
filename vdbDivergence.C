@@ -17,16 +17,11 @@
 #include <OP/OP_AutoLockInputs.h>
 
 #include <GU/GU_PrimVDB.h>
-
+#include <Utils.h>
 #include <openvdb/openvdb.h>
 
 using namespace VdbCappucino;
-using ColorAccessor = typename openvdb::Vec3SGrid::ConstAccessor;
-using Color_fastSampler = openvdb::tools::GridSampler<openvdb::Vec3SGrid::ConstAccessor, openvdb::tools::BoxSampler>;
-using VelocityAccessor = typename openvdb::Vec3SGrid::ConstAccessor;
-using Velocity_fastSampler = openvdb::tools::GridSampler<openvdb::Vec3SGrid::ConstAccessor, openvdb::tools::BoxSampler>;
-using GradientAccessor = typename openvdb::Vec3SGrid::ConstAccessor;
-using Gradient_fastSampler = openvdb::tools::GridSampler<openvdb::Vec3SGrid::ConstAccessor, openvdb::tools::BoxSampler>;
+
 
 // label node inputs, 0 corresponds to first input, 1 to the second one
 const char *
@@ -35,7 +30,7 @@ SOP_VdbDivergence::inputLabel(unsigned idx) const
 	switch (idx) {
 	case 0: return "VDB";
 	case 1: return "velocity";
-	case 2: return "gradient";
+	case 2: return "gradient of distance";
 	default: return "default";
 	}
 }
@@ -94,7 +89,7 @@ SOP_VdbDivergence::cookMySop(OP_Context &context)
 				vdbPrim->makeGridUnique();
 				color_baseGrid = vdbPrim->getGridPtr();
 				grid = openvdb::gridPtrCast<openvdb::Vec3SGrid>(color_baseGrid);
-				if (grid && (grid->getName() == "Cd")) {
+				if (grid && (grid->getName() == "velocity")) {
 					numberOfFoundVdbs += 1;
 					break;
 				}
@@ -184,61 +179,9 @@ SOP_VdbDivergence::cookMySop(OP_Context &context)
 
 	
 
-	struct Diverge {
-		openvdb::Vec3SGrid::ConstPtr color_grid;
-		openvdb::Vec3SGrid::ConstPtr velocity_grid;
-		openvdb::Vec3SGrid::ConstPtr gradient_grid;
-		float dt;
-		Diverge(openvdb::Vec3SGrid::ConstPtr g, 
-				openvdb::Vec3SGrid::ConstPtr vel_g,
-				openvdb::Vec3SGrid::ConstPtr grad_g,
-			float d) :color_grid(g), velocity_grid(vel_g), gradient_grid(grad_g), dt(d)
-				{}
-	
-		inline void operator()(const openvdb::Vec3SGrid::ValueOnIter iter) const {
-			openvdb::Vec3f temp = openvdb::Vec3f(0.0f, 0.0f, 0.0f);
-			std::unique_ptr<VelocityAccessor> velocityAccessor;
-			std::unique_ptr<Velocity_fastSampler> velocity_fastSampler;
-			std::unique_ptr<GradientAccessor> gradientAccessor;
-			std::unique_ptr<Gradient_fastSampler> gradient_fastSampler;
-			std::unique_ptr<ColorAccessor> colorAccessor;
-			std::unique_ptr<Color_fastSampler> color_fastSampler;
-			velocityAccessor.reset(new VelocityAccessor(velocity_grid->getConstAccessor()));
-			
-			gradientAccessor.reset(new GradientAccessor(gradient_grid->getConstAccessor()));
-			gradient_fastSampler.reset(new Gradient_fastSampler(*gradientAccessor, gradient_grid->transform()));
-			velocity_fastSampler.reset(new Velocity_fastSampler(*velocityAccessor, velocity_grid->transform()));
-			colorAccessor.reset(new ColorAccessor(color_grid->getConstAccessor()));
-			color_fastSampler.reset(new Color_fastSampler(*colorAccessor, color_grid->transform()));
-			float weight = 0;
-			openvdb::Vec3f normal = gradient_fastSampler->wsSample(color_grid->transform().indexToWorld(iter.getCoord()));
-			normal.normalize();
-			openvdb::Vec3f surface_velocity_0;// = velocity_fastSampler->wsSample(color_grid->transform().indexToWorld(iter.getCoord()));
-			openvdb::Vec3f surface_velocity_1; //= velocity - velocity.projection(normal);
-			//divergence
-			surface_velocity_0 = (velocity_fastSampler->wsSample(color_grid->transform().indexToWorld(iter.getCoord() + openvdb::Coord(1, 0, 0))));
-			surface_velocity_0  = surface_velocity_0 - surface_velocity_0.projection(normal);
-			surface_velocity_1 = (velocity_fastSampler->wsSample(color_grid->transform().indexToWorld(iter.getCoord() + openvdb::Coord(-1, 0, 0))));
-			surface_velocity_1 = surface_velocity_1 - surface_velocity_1.projection(normal);
-			float dudx = surface_velocity_0.x() - surface_velocity_1.x();
-			surface_velocity_0 = (velocity_fastSampler->wsSample(color_grid->transform().indexToWorld(iter.getCoord() + openvdb::Coord(0, 1, 0))));
-			surface_velocity_0 = surface_velocity_0 - surface_velocity_0.projection(normal);
-			surface_velocity_1 = (velocity_fastSampler->wsSample(color_grid->transform().indexToWorld(iter.getCoord() + openvdb::Coord(0, -1, 0))));
-			surface_velocity_1 = surface_velocity_1 - surface_velocity_1.projection(normal);
-			float dvdy = surface_velocity_0.y() - surface_velocity_1.y();
-			surface_velocity_0 = (velocity_fastSampler->wsSample(color_grid->transform().indexToWorld(iter.getCoord() + openvdb::Coord(0, 0, 1))));
-			surface_velocity_0 = surface_velocity_0 - surface_velocity_0.projection(normal);
-			surface_velocity_1 = (velocity_fastSampler->wsSample(color_grid->transform().indexToWorld(iter.getCoord() + openvdb::Coord(0, 0, -1))));
-			surface_velocity_1 = surface_velocity_1 - surface_velocity_1.projection(normal);
-			float dwdz = surface_velocity_0.z() - surface_velocity_1.z();
-			float divergence = -(dudx + dvdy + dwdz) / (2.0f * color_grid->voxelSize().x());
-			iter.setValue(iter.getValue() + iter.getValue() * divergence * dt);
-		}
-	};
-
-
+	std::string gridName = grid->getName();
 	// Iterate over all active values.
-	openvdb::tools::foreach(grid->beginValueOn(), Diverge(grid,velocity_grid,gradient_grid, dt), false, 0);
-	
+	openvdb::tools::foreach(grid->beginValueOn(), Diverge(grid->transform(),velocity_grid,gradient_grid, dt), false, 0);
+	//openvdb_houdini::replaceVdbPrimitive(*gdp, outGrid, *grid, true, gridName.c_str());
 	return error();
 }
