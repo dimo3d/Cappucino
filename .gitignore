@@ -16,3 +16,4 @@ CMakeBuild/build/x64-Release/CMakeFiles/
 *.lib
 backup/
 render/
+*.stackdump
