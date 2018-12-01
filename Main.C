@@ -5,6 +5,7 @@
 #include "vdbReact.h"
 #include "vdbDivergence.h"
 #include "vdbRemove_Divergence.h"
+#include "vdbProjectVector.h"
 #include <limits.h>
 #include <SYS/SYS_Math.h>
 
@@ -40,6 +41,7 @@ void newSopOperator(OP_OperatorTable *table)
 	OP_Operator *op_react;
 	OP_Operator *op_divergence;
 	OP_Operator *op_remove_divergence;
+	OP_Operator *op_projectVectorToSurface;
 	op_wave = new OP_Operator(
     		"vdbWave",                      // internal name, needs to be unique in OP_OperatorTable (table containing all nodes for a network type - SOPs in our case, each entry in the table is an object of class OP_Operator which basically defines everything Houdini requires in order to create nodes of the new type)
     		"VDB Wave",                   // UI name
@@ -195,4 +197,30 @@ void newSopOperator(OP_OperatorTable *table)
 	// after addOperator(), 'table' will take ownership of 'op'
 	table->addOperator(op_remove_divergence);
 	
+
+	hutil::ParmList parms_projectVectorToSurface;
+	parms_projectVectorToSurface.add(hutil::ParmFactory(PRM_STRING, "velocitygroup", "Velocity Group")
+		.setHelpText("Specify velocity vector grids to process")
+		.setChoiceList(&hutil::PrimGroupMenuInput1));
+
+	parms_projectVectorToSurface.add(hutil::ParmFactory(PRM_STRING, "gradientgroup", "Gradient Group")
+		.setHelpText("Specify gradient of distance field")
+		.setChoiceList(&hutil::PrimGroupMenuInput2));
+
+
+
+	op_projectVectorToSurface = new OP_Operator(
+		"vdbprojectVector",                      // internal name, needs to be unique in OP_OperatorTable (table containing all nodes for a network type - SOPs in our case, each entry in the table is an object of class OP_Operator which basically defines everything Houdini requires in order to create nodes of the new type)
+		"VDB Project Vector",                   // UI name
+		SOP_VdbProjectVector::myConstructor,     // how to build the node - A class factory function which constructs nodes of this type
+		parms_projectVectorToSurface.get(),    // my parameters - An array of PRM_Template objects defining the parameters to this operator
+		2,                                            // min # of sources
+		2);                                           // max # of sources
+
+													  // place this operator under the VDB submenu in the TAB menu.
+	op_projectVectorToSurface->setOpTabSubMenuPath("VDB");
+
+	// after addOperator(), 'table' will take ownership of 'op'
+	table->addOperator(op_projectVectorToSurface);
+
 }

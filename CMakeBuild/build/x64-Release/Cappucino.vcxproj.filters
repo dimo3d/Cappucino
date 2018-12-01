@@ -37,6 +37,9 @@
     <ClCompile Include="..\..\..\Utils.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\vdbProjectVector.C">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="C:\git\cappucino\vdbConvolve.h">
@@ -70,6 +73,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Diverge.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\vdbProjectVector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

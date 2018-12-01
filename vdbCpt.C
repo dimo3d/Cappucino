@@ -115,22 +115,8 @@ SOP_VdbCpt::cookMySop(OP_Context &context)
 				else {
 					col = closestPoint - grid->transform().indexToWorld(iter.getCoord()) ;
 				}
-				float x = col.x();
-				float y = col.y();
-				//if (x>1.0f) x = 1.0f;
-				//if (x<-1.0f) x = -1.0f;
-				//if (y>1.0f) y = 1.0f;
-				//if (y<-1.0f) y = -1.0f;
-				//if ((x<0.00001f)&&(x>-0.00001f)) x = 0.0f;
-				//if ((y<0.00001f)&&(y>-0.00001f)) y = 0.0f;
-				if ((x == 0.0f) && (y == 0.0f)) {
-					iter.setValue(openvdb::Vec3f(0, 0, 0));
-					iter.setValueOff();
-				}
-				else {
-					iter.setValue(openvdb::Vec3f(x, y, col.z()));
-
-				}
+					iter.setValue(col);
+				
 			}
 		}
 	};

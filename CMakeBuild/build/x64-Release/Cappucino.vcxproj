@@ -57,7 +57,8 @@
       <WarningLevel>Level1</WarningLevel>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;UT_DSO_TAGINFO="3262197cbf16401137a32dac6209bac8047e98c0fd72fe8b6bafdd0609148bab3e902092de662c704309e3b267a964524b83b442efd3e144420327ec60f090ba5bac55b1e7b8";VERSION="16.5.323";AMD64;SIZEOF_VOID_P=8;FBX_ENABLED=1;OPENCL_ENABLED=1;OPENVDB_ENABLED=1;SESI_LITTLE_ENDIAN;UT_ASSERT_LEVEL=0;I386;SWAP_BITFIELDS;_WIN32_WINNT=0x0502;NOMINMAX;STRICT;WIN32_LEAN_AND_MEAN;_USE_MATH_DEFINES;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_SCL_SECURE_NO_WARNINGS;HBOOST_ALL_NO_LIB;EIGEN_MALLOC_ALREADY_ALIGNED=0;CMAKE_INTDIR="Release";Cappucino_EXPORTS;OPENEXR_DLL;MAKING_DSO;SESI_OPENVDB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DebugInformationFormat>None</DebugInformationFormat>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;UT_DSO_TAGINFO=\"3262197cbf16401137a32dac6209bac8047e98c0fd72fe8b6bafdd0609148bab3e902092de662c704309e3b267a964524b83b442efd3e144420327ec60f090ba5bac55b1e7b8\";VERSION=\"16.5.323\";AMD64;SIZEOF_VOID_P=8;FBX_ENABLED=1;OPENCL_ENABLED=1;OPENVDB_ENABLED=1;SESI_LITTLE_ENDIAN;UT_ASSERT_LEVEL=0;I386;WIN32;SWAP_BITFIELDS;_WIN32_WINNT=0x0502;NOMINMAX;STRICT;WIN32_LEAN_AND_MEAN;_USE_MATH_DEFINES;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_SCL_SECURE_NO_WARNINGS;HBOOST_ALL_NO_LIB;EIGEN_MALLOC_ALREADY_ALIGNED=0;MAKING_DSO;CMAKE_INTDIR=\"Release\";Cappucino_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -75,7 +76,7 @@
       <AdditionalOptions>%(AdditionalOptions)  /machine:x64</AdditionalOptions>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;C:\git\openvdb\cmakebuild_hdk\openvdb\Release\openvdb.lib;Alembic_sidefx.lib;archive.lib;audiere.lib;blosc.lib;clFFT.lib;event.lib;event_core.lib;event_extra.lib;event_extra_static.lib;fbxsdk_md.lib;Field3D_sidefx.lib;glew.lib;Half.lib;hboost_chrono-mt.lib;hboost_filesystem-mt.lib;hboost_iostreams-mt.lib;hboost_program_options-mt.lib;hboost_regex-mt.lib;hboost_system-mt.lib;hboost_thread-mt.lib;hdf5.lib;hdf5_hl.lib;hfreetype.lib;Iex.lib;IexMath.lib;IlmImf.lib;IlmImfUtil.lib;IlmThread.lib;Imath.lib;jpeg.lib;las.lib;libARR.lib;libasprintf.lib;libAU.lib;libBM.lib;libBR.lib;libBV.lib;libCE.lib;libCH.lib;libcharset.lib;libCHOP.lib;libCHOPNET.lib;libCHOPZ.lib;libCHUI.lib;libCL.lib;libCLO.lib;libCMD.lib;libCOP2.lib;libCOPNET.lib;libCOPZ.lib;libcurl.lib;libcurlwrap.lib;libCV.lib;libCVEX.lib;libDAE.lib;libDD.lib;libDEP.lib;libDM.lib;libDOP.lib;libDOPZ.lib;libDTUI.lib;libdxf.lib;libEXPR.lib;libexslt.lib;libFBX.lib;libFONT.lib;libFS.lib;libFUI.lib;libFUSE.lib;libGA.lib;libGABC.lib;libGAS.lib;libGD.lib;libGDT.lib;libGEO.lib;libGOP.lib;libGP.lib;libGQ.lib;libGR.lib;libGSTY.lib;libGT.lib;libGU.lib;libGUI.lib;libGVEX.lib;libHAPI.lib;libHAPIL.lib;libHARC.lib;libHARD.lib;libHOM.lib;libHOMF.lib;libHOMUI.lib;libhptex.lib;libiconv.lib;libIM.lib;libIMG.lib;libIMG3D.lib;libIMGUI.lib;libIMH.lib;libIMP.lib;libIMS.lib;libintl.lib;libIPR.lib;libJEDI.lib;libJIVE.lib;libKIN.lib;libLA.lib;libLM.lib;libLN.lib;libMATUI.lib;libMC.lib;libMCS.lib;libMDS.lib;libMGR.lib;libMH.lib;libMIDI.lib;libMOT.lib;libMPI.lib;libMSS.lib;libMT.lib;libMV.lib;libMWS.lib;libOBJ.lib;libOH.lib;libOP.lib;libOP3D.lib;libOPUI.lib;libosdCPU_md.lib;libosdGPU_md.lib;libPBR.lib;libPI.lib;libpng13.lib;libpng13d.lib;libPOP.lib;libPOPNET.lib;libPOPZ.lib;libPRM.lib;libPSI2.lib;libPXL.lib;libPY.lib;libPYP.lib;libRAY.lib;libRBD.lib;libRE.lib;libROP.lib;libRU.lib;libSHLF.lib;libSHLFUI.lib;libSHOP.lib;libSI.lib;libSIM.lib;libSIMZ.lib;libsndfile.lib;libSOHO.lib;libSOP.lib;libSOPTG.lib;libSOPZ.lib;libSS.lib;libSTM.lib;libSTOR.lib;libSTORUI.lib;libSTY.lib;libSYS.lib;libTAKE.lib;libTBBPROXY.lib;libTBF.lib;libTHOR.lib;libTIL.lib;libtools.lib;libTS.lib;libUI.lib;libUT.lib;libVCC.lib;libVEX.lib;libVGEO.lib;libVIS.lib;libVISF.lib;libVM.lib;libVMAT.lib;libVOP.lib;libVOPNET.lib;libVPRM.lib;libWIRE.lib;libxml2.lib;libxslt.lib;OpenCL.lib;OpenColorIO_sidefx.lib;Ptex_sidefx.lib;siapp.lib;steam_api64.lib;tbb.lib;tbbmalloc.lib;tbbmalloc_proxy.lib;tiff.lib;xerces.lib;zdll.lib;openvdb_sesi.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>D:\boost\boost_1_64_0\stage\lib;C:\Program Files\Side Effects Software\Houdini 16.5.571\custom\houdini\dsolib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <ImportLibrary>C:/git/cappucino/CMakeBuild/build/x64-Release/Release/Cappucino.lib</ImportLibrary>
       <ProgramDataBaseFile>C:/Users/diete/Documents/houdini16.5/dso/Cappucino.pdb</ProgramDataBaseFile>
@@ -112,6 +113,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="..\..\..\..\openvdb\openvdb_houdini\houdini\SOP_NodeVDB.h" />
     <ClInclude Include="..\..\..\Diverge.h" />
     <ClInclude Include="..\..\..\Utils.h" />
+    <ClInclude Include="..\..\..\vdbProjectVector.h" />
     <ClInclude Include="..\..\..\vdbRemove_Divergence.h" />
     <ClInclude Include="C:\git\cappucino\vdbConvolve.h" />
     <ClInclude Include="C:\git\cappucino\vdbCpt.h" />
@@ -127,6 +129,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ClCompile>
     <ClCompile Include="..\..\..\SOP_NodeVDB.cc" />
     <ClCompile Include="..\..\..\Utils.cc" />
+    <ClCompile Include="..\..\..\vdbProjectVector.C" />
     <ClCompile Include="..\..\..\vdbRemove_Divergence.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>

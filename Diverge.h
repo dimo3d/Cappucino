@@ -8,7 +8,34 @@
 using VelocityAccessor = typename openvdb::Vec3SGrid::ConstAccessor;
 using Velocity_fastSampler = openvdb::tools::GridSampler<openvdb::Vec3SGrid::ConstAccessor, openvdb::tools::BoxSampler>;
 using GradientAccessor = typename openvdb::Vec3SGrid::ConstAccessor;
-using Gradient_fastSampler = openvdb::tools::GridSampler<openvdb::Vec3SGrid::ConstAccessor, openvdb::tools::BoxSampler>;
+using Gradient_fastSampler = openvdb::tools::GridSampler<openvdb::Vec3SGrid::ConstAccessor, openvdb::tools::QuadraticSampler>;
+
+struct ProjectVectorToSurface {
+	openvdb::Vec3SGrid::ConstPtr grad_grid;
+	openvdb::math::Transform trans;
+	ProjectVectorToSurface(
+		openvdb::Vec3SGrid::ConstPtr grad_g, openvdb::math::Transform tr
+	) : grad_grid(grad_g), trans(tr)
+	{}
+
+	inline void operator()(const openvdb::Vec3SGrid::ValueOnIter iter) const {
+		std::unique_ptr<GradientAccessor> gradientAccessor;
+		std::unique_ptr<Gradient_fastSampler> gradient_fastSampler;
+
+		gradientAccessor.reset(new GradientAccessor(grad_grid->getConstAccessor()));
+		gradient_fastSampler.reset(new Gradient_fastSampler(*gradientAccessor, grad_grid->transform()));
+
+
+		openvdb::Vec3f normal = gradient_fastSampler->wsSample(trans.indexToWorld(iter.getCoord()));
+		openvdb::Vec3f oldVelocity = iter.getValue();
+		float length = oldVelocity.length();
+		normal.normalize();
+		openvdb::Vec3f projected_Velocity = oldVelocity - oldVelocity.projection(normal);
+		projected_Velocity.normalize();
+
+		iter.setValue(projected_Velocity * length);
+	}
+};
 
 class Diverge {
 private:

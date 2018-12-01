@@ -157,28 +157,7 @@ namespace {
 		openvdb::tools::Gradient<openvdb::FloatGrid> gradientOp(*pressureGrid);
 		openvdb::Vec3SGrid::Ptr gradientOfPressure = gradientOp.process();
 
-		struct ProjectVectorToSurface {
-			openvdb::Vec3SGrid::ConstPtr grad_grid;
-			openvdb::math::Transform trans;
-			ProjectVectorToSurface(
-				openvdb::Vec3SGrid::ConstPtr grad_g, openvdb::math::Transform tr
-				) : grad_grid(grad_g), trans(tr)
-			{}
-
-			inline void operator()(const openvdb::Vec3SGrid::ValueOnIter iter) const {
-				std::unique_ptr<GradientAccessor> gradientAccessor;
-				std::unique_ptr<Gradient_fastSampler> gradient_fastSampler;
-								
-				gradientAccessor.reset(new GradientAccessor(grad_grid->getConstAccessor()));
-				gradient_fastSampler.reset(new Gradient_fastSampler(*gradientAccessor, grad_grid->transform()));
-			
-				
-				openvdb::Vec3f normal = gradient_fastSampler->wsSample(trans.indexToWorld(iter.getCoord()));
-				normal.normalize();	
-				openvdb::Vec3f projected_Velocity = iter.getValue().projection(normal);
-				iter.setValue(iter.getValue()-projected_Velocity);
-			}
-		};
+		
 
 
 		// Iterate over all active values.
