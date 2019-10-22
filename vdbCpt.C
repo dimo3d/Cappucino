@@ -65,8 +65,8 @@ SOP_VdbCpt::cookMySop(OP_Context &context)
 		using CpmAccessor = typename openvdb::Vec3SGrid::ConstAccessor;
 		using ColorAccessor = typename openvdb::Vec3SGrid::ConstAccessor;
 		using DistAccessor = typename openvdb::FloatGrid::ConstAccessor;
-		using Cpm_fastSampler = openvdb::tools::GridSampler<openvdb::Vec3SGrid::ConstAccessor, openvdb::tools::BoxSampler>;
-		using Color_fastSampler = openvdb::tools::GridSampler<openvdb::Vec3SGrid::ConstAccessor, openvdb::tools::BoxSampler>;
+		using Cpm_fastSampler = openvdb::tools::GridSampler<openvdb::Vec3SGrid::ConstAccessor, openvdb::tools::PointSampler>;
+		using Color_fastSampler = openvdb::tools::GridSampler<openvdb::Vec3SGrid::ConstAccessor, openvdb::tools::PointSampler>;
 		using Dist_fastSampler = openvdb::tools::GridSampler<openvdb::FloatGrid::ConstAccessor, openvdb::tools::BoxSampler>;
 		float maxCells;
 		int doworld;
