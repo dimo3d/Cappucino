@@ -101,7 +101,7 @@ SOP_VdbCpt::cookMySop(OP_Context &context)
 			//const float distance = fabs(distAccessor->getValue(iter.getCoord()));
 			if (distance>(maxCells*grid->voxelSize().x()))
 			{
-				iter.setValue(openvdb::Vec3f(1, 0, 0));
+				iter.setValue(openvdb::Vec3f(0, 0, 0));
 				iter.setValueOff();
 			}
 			else {
