@@ -66,7 +66,7 @@ SOP_VdbCpt::cookMySop(OP_Context &context)
 		using ColorAccessor = typename openvdb::Vec3SGrid::ConstAccessor;
 		using DistAccessor = typename openvdb::FloatGrid::ConstAccessor;
 		using Cpm_fastSampler = openvdb::tools::GridSampler<openvdb::Vec3SGrid::ConstAccessor, openvdb::tools::PointSampler>;
-		using Color_fastSampler = openvdb::tools::GridSampler<openvdb::Vec3SGrid::ConstAccessor, openvdb::tools::PointSampler>;
+		using Color_fastSampler = openvdb::tools::GridSampler<openvdb::Vec3SGrid::ConstAccessor, openvdb::tools::BoxSampler>;
 		using Dist_fastSampler = openvdb::tools::GridSampler<openvdb::FloatGrid::ConstAccessor, openvdb::tools::BoxSampler>;
 		float maxCells;
 		int doworld;
@@ -101,7 +101,7 @@ SOP_VdbCpt::cookMySop(OP_Context &context)
 			//const float distance = fabs(distAccessor->getValue(iter.getCoord()));
 			if (distance>(maxCells*grid->voxelSize().x()))
 			{
-				iter.setValue(openvdb::Vec3f(0, 0, 0));
+				iter.setValue(openvdb::Vec3f(1, 0, 0));
 				iter.setValueOff();
 			}
 			else {
@@ -209,7 +209,7 @@ SOP_VdbCpt::cookMySop(OP_Context &context)
 				//openvdb::tools::foreach(grid->beginValueOn(), Diverge(grid->transform(),velocity_grid,gradient_grid, dt), false, 0);
 				openvdb::tools::foreach(grid->beginValueOn(), ClosestPointOp(grid, grid_copy, cpt_grid, dist_grid, DOWORLDCOORDS(), maxCells), true, false);
 				grid_copy->clear();
-				grid->pruneGrid();
+				//grid->pruneGrid();
 			}
 		}
 
