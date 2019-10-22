@@ -44,8 +44,8 @@ namespace {
 		typedef typename TreeType::LeafNodeType LeafNodeType;
 		typedef typename TreeType::ValueType    ValueType;
 
-		CorrectVelocityOp(LeafNodeType** velocityNodes, const LeafNodeType** gradientOfPressureNodes, double dx)
-			: mVelocityNodes(velocityNodes), mGradientOfPressureNodes(gradientOfPressureNodes), mVoxelSize(dx)
+		CorrectVelocityOp(LeafNodeType** velocityNodes, const openvdb::Vec3SGrid::Ptr gradientOfPressure, double dx)
+			: mVelocityNodes(velocityNodes), gradientOfPressure(gradientOfPressure), mVoxelSize(dx)
 		{
 		}
 
@@ -59,17 +59,18 @@ namespace {
 				LeafNodeType& velocityNode = *mVelocityNodes[n];
 				ValueType* velocityData = velocityNode.buffer().data();
 
-				const ValueType* gradientOfPressureData = mGradientOfPressureNodes[n]->buffer().data();
+				//const ValueType* gradientOfPressureData = mGradientOfPressureNodes[n]->buffer().data();
 
 				for (typename LeafNodeType::ValueOnIter it = velocityNode.beginValueOn(); it; ++it) {
 					const openvdb::Index pos = it.pos();
-					velocityData[pos] -= scale * gradientOfPressureData[pos];
+					const openvdb::math::Coord coord = it.getCoord();
+						velocityData[pos] -= scale * gradientOfPressure->getConstAccessor().getValue(coord);
 				}
 			}
 		}
 
 		LeafNodeType       * const * const mVelocityNodes;
-		LeafNodeType const * const * const mGradientOfPressureNodes;
+		openvdb::Vec3SGrid::Ptr gradientOfPressure;
 		double                       const mVoxelSize;
 	}; // class CorrectVelocityOp
 
@@ -174,7 +175,7 @@ namespace {
 			const double dx = velocityGrid->transform().voxelSize()[0];
 
 			tbb::parallel_for(tbb::blocked_range<size_t>(0, velocityNodes.size()),
-				CorrectVelocityOp<myVectorTreeType>(&velocityNodes[0], &gradientNodes[0], dx));
+				CorrectVelocityOp<myVectorTreeType>(&velocityNodes[0], gradientOfPressure, dx));
 			
 			openvdb::tools::foreach(velocityGrid->beginValueOn(), ProjectVectorToSurface(gradient_grid, velocityGrid->transform()), true, 0);
 
