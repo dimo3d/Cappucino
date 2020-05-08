@@ -17,3 +17,6 @@ CMakeBuild/build/x64-Release/CMakeFiles/
 backup/
 render/
 *.stackdump
+geo/
+ifds/
+output/
