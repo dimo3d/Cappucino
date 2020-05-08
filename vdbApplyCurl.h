@@ -1,13 +1,19 @@
 #pragma once
 #include <SOP/SOP_Node.h>
 #include <SOP_NodeVDB.h>
-#include <openvdb/tools/GridOperators.h>
 #include <openvdb/Grid.h>
+#include <openvdb/tools/GridOperators.h>
+
 #include <openvdb/tools/Interpolation.h>
 #include <openvdb/tools/ValueTransformer.h>
-
+#include <openvdb/tools/GridTransformer.h>
+#include <Diverge.h>
 namespace VdbCappucino {
-	class SOP_VdbCpt : public openvdb_houdini::SOP_NodeVDB
+	
+
+	
+
+	class SOP_VdbApplyCurl : public openvdb_houdini::SOP_NodeVDB
 	{
 	public:
 		// node contructor for HDK
@@ -18,9 +24,9 @@ namespace VdbCappucino {
 
 	protected:
 		// constructor, destructor
-		SOP_VdbCpt(OP_Network *net, const char *name, OP_Operator *op);
+		SOP_VdbApplyCurl(OP_Network *net, const char *name, OP_Operator *op);
 
-		virtual ~SOP_VdbCpt();
+		virtual ~SOP_VdbApplyCurl();
 
 		// labeling node inputs in Houdini UI
 		virtual const char *inputLabel(unsigned idx) const;
@@ -31,11 +37,10 @@ namespace VdbCappucino {
 	private:
 		// helper function for returning value of parameter
 		int DEBUG() { return evalInt("debug", 0, 0); }
-		int DOWORLDCOORDS() { return evalInt("doworldpos", 0, 0); }
-		int INTERPOLATIONMETHOD() { return evalInt("interpolationmethod", 0, 0); }
-		fpreal MAXCELLS(fpreal t) { return evalFloat("maxcells", 0, t); }
+		float DT() { return evalFloat("dt", 0, 0); }
 
 	};
+	
 
-
+	
 }

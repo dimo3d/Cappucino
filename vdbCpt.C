@@ -55,7 +55,7 @@ SOP_VdbCpt::cookMySop(OP_Context &context)
 {
 	
 	float maxCells = MAXCELLS(context.getTime());
-
+	int interpolationMethod = INTERPOLATIONMETHOD();
 	class ClosestPointOp {
 	private:
 		openvdb::Vec3SGrid::Ptr grid;
@@ -66,17 +66,22 @@ SOP_VdbCpt::cookMySop(OP_Context &context)
 		using ColorAccessor = typename openvdb::Vec3SGrid::ConstAccessor;
 		using DistAccessor = typename openvdb::FloatGrid::ConstAccessor;
 		using Cpm_fastSampler = openvdb::tools::GridSampler<openvdb::Vec3SGrid::ConstAccessor, openvdb::tools::BoxSampler>;
-		using Color_fastSampler = openvdb::tools::GridSampler<openvdb::Vec3SGrid::ConstAccessor, openvdb::tools::BoxSampler>;
+		using Color_fastSampler_box = openvdb::tools::GridSampler<openvdb::Vec3SGrid::ConstAccessor, openvdb::tools::BoxSampler>;
+		using Color_fastSampler_nn = openvdb::tools::GridSampler<openvdb::Vec3SGrid::ConstAccessor, openvdb::tools::PointSampler>;
+		using Color_fastSampler_spline = openvdb::tools::GridSampler<openvdb::Vec3SGrid::ConstAccessor, openvdb::tools::QuadraticSampler>;
 		using Dist_fastSampler = openvdb::tools::GridSampler<openvdb::FloatGrid::ConstAccessor, openvdb::tools::BoxSampler>;
 		float maxCells;
 		int doworld;
+		int interpolationMethod;
 	public:
 		ClosestPointOp(openvdb::Vec3SGrid::Ptr  g,
 			openvdb::Vec3SGrid::Ptr color_g,
 			openvdb::Vec3SGrid::ConstPtr cpm_g,
 			openvdb::FloatGrid::ConstPtr dist_g,
 			int dw,
-			float mC) :grid(g), maxCells(mC), color_grid(color_g), cpm_grid(cpm_g), dist_grid(dist_g), doworld(dw) {
+			float mC,
+			int intmethod) :grid(g), maxCells(mC), color_grid(color_g), cpm_grid(cpm_g), dist_grid(dist_g), doworld(dw), 
+			interpolationMethod(intmethod){
 		};
 	
 
@@ -86,15 +91,17 @@ SOP_VdbCpt::cookMySop(OP_Context &context)
 			std::unique_ptr<CpmAccessor> cpmAccessor;
 			std::unique_ptr<Cpm_fastSampler> cpm_fastSampler; 
 			std::unique_ptr<ColorAccessor> colorAccessor;
-			std::unique_ptr<Color_fastSampler> color_fastSampler;
+			std::unique_ptr<Color_fastSampler_box> color_fastSampler_box;
+			std::unique_ptr<Color_fastSampler_nn> color_fastSampler_nn;
+			std::unique_ptr<Color_fastSampler_spline> color_fastSampler_spline;
 			distAccessor.reset(new DistAccessor(dist_grid->getConstAccessor()));
 			dist_fastSampler.reset(new Dist_fastSampler(*distAccessor, dist_grid->transform()));
 			cpmAccessor.reset(new CpmAccessor(cpm_grid->getConstAccessor()));
 			cpm_fastSampler.reset(new Cpm_fastSampler(*cpmAccessor, cpm_grid->transform()));
 			colorAccessor.reset(new ColorAccessor(color_grid->getConstAccessor()));
-			color_fastSampler.reset(new Color_fastSampler(*colorAccessor, color_grid->transform()));
-
-			
+			color_fastSampler_box.reset(new Color_fastSampler_box(*colorAccessor, color_grid->transform()));
+			color_fastSampler_nn.reset(new Color_fastSampler_nn(*colorAccessor, color_grid->transform()));
+			color_fastSampler_spline.reset(new Color_fastSampler_spline(*colorAccessor, color_grid->transform()));
 			
 			
 			const float distance = fabs(dist_fastSampler->wsSample(grid->transform().indexToWorld(iter.getCoord())));
@@ -110,7 +117,12 @@ SOP_VdbCpt::cookMySop(OP_Context &context)
 				//printf("closest Point %f, %f, %f\n",closestPoint.x(),closestPoint.y(),closestPoint.z());
 				openvdb::Vec3f col;
 				if (doworld == 0) {
-					col = (color_fastSampler->wsSample(closestPoint));
+					if (interpolationMethod==0)
+						col = (color_fastSampler_nn->wsSample(closestPoint));
+					else if (interpolationMethod == 1)
+						col = (color_fastSampler_box->wsSample(closestPoint));
+					else 
+						col = (color_fastSampler_spline->wsSample(closestPoint));
 				}
 				else {
 					col = closestPoint - grid->transform().indexToWorld(iter.getCoord()) ;
@@ -207,7 +219,7 @@ SOP_VdbCpt::cookMySop(OP_Context &context)
 				openvdb::Vec3fGrid::Ptr grid_copy = grid->deepCopy();
 
 				//openvdb::tools::foreach(grid->beginValueOn(), Diverge(grid->transform(),velocity_grid,gradient_grid, dt), false, 0);
-				openvdb::tools::foreach(grid->beginValueOn(), ClosestPointOp(grid, grid_copy, cpt_grid, dist_grid, DOWORLDCOORDS(), maxCells), true, false);
+				openvdb::tools::foreach(grid->beginValueOn(), ClosestPointOp(grid, grid_copy, cpt_grid, dist_grid, DOWORLDCOORDS(), maxCells, interpolationMethod), true, false);
 				grid_copy->clear();
 				//grid->pruneGrid();
 			}

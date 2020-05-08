@@ -40,6 +40,12 @@
     <ClCompile Include="..\..\..\vdbProjectVector.C">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\vdbApplyCurl.C">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\vdbCrossProduct.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="C:\git\cappucino\vdbConvolve.h">
@@ -76,6 +82,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\vdbProjectVector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\vdbApplyCurl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\vdbCrossProduct.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

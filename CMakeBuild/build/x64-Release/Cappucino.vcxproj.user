@@ -4,4 +4,8 @@
     <LocalDebuggerCommand>C:\Program Files\Side Effects Software\Houdini 17.5.173\bin\houdini.exe</LocalDebuggerCommand>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release18.0|x64'">
+    <LocalDebuggerCommand>C:\Program Files\Side Effects Software\Houdini 18.0.416\bin\houdini.exe</LocalDebuggerCommand>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
 </Project>

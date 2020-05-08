@@ -6,6 +6,8 @@
 #include "vdbDivergence.h"
 #include "vdbRemove_Divergence.h"
 #include "vdbProjectVector.h"
+#include "vdbApplyCurl.h"
+#include "vdbCrossProduct.h"
 #include <limits.h>
 #include <SYS/SYS_Math.h>
 
@@ -42,6 +44,8 @@ void newSopOperator(OP_OperatorTable *table)
 	OP_Operator *op_divergence;
 	OP_Operator *op_remove_divergence;
 	OP_Operator *op_projectVectorToSurface;
+	OP_Operator *op_applyCurl;
+	OP_Operator *op_crossProduct;
 	op_wave = new OP_Operator(
     		"vdbWave",                      // internal name, needs to be unique in OP_OperatorTable (table containing all nodes for a network type - SOPs in our case, each entry in the table is an object of class OP_Operator which basically defines everything Houdini requires in order to create nodes of the new type)
     		"VDB Wave",                   // UI name
@@ -94,6 +98,16 @@ void newSopOperator(OP_OperatorTable *table)
 	parms_cpt.add(hutil::ParmFactory(PRM_TOGGLE, "doworldpos", "doworldpos")
 		.setDefault(PRMzeroDefaults)
 		.setRange(PRM_RANGE_RESTRICTED, 0, PRM_RANGE_UI, 1));
+
+	parms_cpt.add(hutil::ParmFactory(PRM_ORD, "interpolationmethod", "Interpolation Method")
+		.setChoiceList(PRM_CHOICELIST_SINGLE, {
+			"Nearest Neighbour",
+			"Box",
+			"Spline"
+		})
+		.setDefault(1)
+		);
+	
 
 	op_cpt = new OP_Operator(
 		"vdbcpt",                      // internal name, needs to be unique in OP_OperatorTable (table containing all nodes for a network type - SOPs in our case, each entry in the table is an object of class OP_Operator which basically defines everything Houdini requires in order to create nodes of the new type)
@@ -223,4 +237,58 @@ void newSopOperator(OP_OperatorTable *table)
 	// after addOperator(), 'table' will take ownership of 'op'
 	table->addOperator(op_projectVectorToSurface);
 
+	/////////////////
+	hutil::ParmList parms_applyCurl;
+	parms_applyCurl.add(hutil::ParmFactory(PRM_STRING, "velocitygroup", "Velocity Group")
+		.setHelpText("Specify velocity vector grids to process")
+		.setChoiceList(&hutil::PrimGroupMenuInput1));
+
+	parms_applyCurl.add(hutil::ParmFactory(PRM_STRING, "exvelgroup", "External Velocity Group")
+		.setHelpText("Specify external velocity")
+		.setChoiceList(&hutil::PrimGroupMenuInput2));
+
+	parms_applyCurl.add(hutil::ParmFactory(PRM_STRING, "gradientgroup", "Gradient Group")
+		.setHelpText("Specify surface gradient")
+		.setChoiceList(&hutil::PrimGroupMenuInput3));
+
+
+
+	op_applyCurl = new OP_Operator(
+		"vdbapplyCurl",                      // internal name, needs to be unique in OP_OperatorTable (table containing all nodes for a network type - SOPs in our case, each entry in the table is an object of class OP_Operator which basically defines everything Houdini requires in order to create nodes of the new type)
+		"VDB Apply Curl",                   // UI name
+		SOP_VdbApplyCurl::myConstructor,     // how to build the node - A class factory function which constructs nodes of this type
+		parms_applyCurl.get(),    // my parameters - An array of PRM_Template objects defining the parameters to this operator
+		3,                                            // min # of sources
+		3);                                           // max # of sources
+
+													  // place this operator under the VDB submenu in the TAB menu.
+	op_applyCurl->setOpTabSubMenuPath("VDB");
+
+	// after addOperator(), 'table' will take ownership of 'op'
+	table->addOperator(op_applyCurl);
+
+	/////////////////
+	hutil::ParmList parms_crossProduct;
+	parms_crossProduct.add(hutil::ParmFactory(PRM_STRING, "agroup", "A Group")
+		.setHelpText("Specify A vector grids to process")
+		.setChoiceList(&hutil::PrimGroupMenuInput1));
+
+	parms_crossProduct.add(hutil::ParmFactory(PRM_STRING, "bgroup", "B Group")
+		.setHelpText("Specify B vector grids to process")
+		.setChoiceList(&hutil::PrimGroupMenuInput2));
+
+
+	op_crossProduct = new OP_Operator(
+		"vdbCrossProduct",                      // internal name, needs to be unique in OP_OperatorTable (table containing all nodes for a network type - SOPs in our case, each entry in the table is an object of class OP_Operator which basically defines everything Houdini requires in order to create nodes of the new type)
+		"VDB CrossProduct",                   // UI name
+		SOP_VdbCrossProduct::myConstructor,     // how to build the node - A class factory function which constructs nodes of this type
+		parms_crossProduct.get(),    // my parameters - An array of PRM_Template objects defining the parameters to this operator
+		2,                                            // min # of sources
+		2);                                           // max # of sources
+
+													  // place this operator under the VDB submenu in the TAB menu.
+	op_crossProduct->setOpTabSubMenuPath("VDB");
+
+	// after addOperator(), 'table' will take ownership of 'op'
+	table->addOperator(op_crossProduct);
 }

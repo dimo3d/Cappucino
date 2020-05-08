@@ -10,6 +10,28 @@ using Velocity_fastSampler = openvdb::tools::GridSampler<openvdb::Vec3SGrid::Con
 using GradientAccessor = typename openvdb::Vec3SGrid::ConstAccessor;
 using Gradient_fastSampler = openvdb::tools::GridSampler<openvdb::Vec3SGrid::ConstAccessor, openvdb::tools::QuadraticSampler>;
 
+struct CrossProduct {
+	openvdb::Vec3SGrid::ConstPtr b_grid;
+	openvdb::math::Transform trans;
+	CrossProduct(
+		openvdb::Vec3SGrid::ConstPtr b_g, openvdb::math::Transform tr
+	) : b_grid(b_g), trans(tr)
+	{}
+
+	inline void operator()(const openvdb::Vec3SGrid::ValueOnIter iter) const {
+		std::unique_ptr<GradientAccessor> bAccessor;
+		std::unique_ptr<Gradient_fastSampler> b_fastSampler;
+
+		bAccessor.reset(new GradientAccessor(b_grid->getConstAccessor()));
+		b_fastSampler.reset(new Gradient_fastSampler(*bAccessor, b_grid->transform()));
+
+
+		openvdb::Vec3f b_Vec = b_fastSampler->wsSample(trans.indexToWorld(iter.getCoord()));
+		openvdb::Vec3f a_Vec = iter.getValue();
+		
+		iter.setValue(a_Vec.cross(b_Vec));
+	}
+};
 struct ProjectVectorToSurface {
 	openvdb::Vec3SGrid::ConstPtr grad_grid;
 	openvdb::math::Transform trans;
@@ -36,7 +58,57 @@ struct ProjectVectorToSurface {
 		iter.setValue(projected_Velocity * length);
 	}
 };
+struct applyJacobiMatrix {
+	openvdb::Vec3SGrid::ConstPtr grad_grid;
+	openvdb::Vec3SGrid::ConstPtr exvel_grid;
+	
+	applyJacobiMatrix(
+		openvdb::Vec3SGrid::ConstPtr grad_g, openvdb::Vec3SGrid::ConstPtr exvel_g
+	) : grad_grid(grad_g), exvel_grid(exvel_g)
+	{}
+	inline void operator()(const openvdb::Vec3SGrid::ValueOnIter iter) const {
+		
 
+		// Compute the value of the grid at ijk via nearest-neighbor (zero-order)
+		// interpolation.
+		const openvdb::Vec3R ijk= iter.getCoord().asVec3d();
+		openvdb::Vec3R normal = openvdb::tools::PointSampler::sample(grad_grid->tree(), ijk);
+		
+		openvdb::Vec3R surface_velocity_0;
+		openvdb::Vec3R surface_velocity_1;
+		//divergence
+		surface_velocity_0 = openvdb::tools::PointSampler::sample(exvel_grid->tree(), ijk + openvdb::Vec3R(1, 0, 0));
+		//surface_velocity_0 = surface_velocity_0 - surface_velocity_0.projection(normal);
+		surface_velocity_1 = openvdb::tools::PointSampler::sample(exvel_grid->tree(), ijk + openvdb::Vec3R(-1, 0, 0));
+		//surface_velocity_1 = surface_velocity_1 - surface_velocity_1.projection(normal);
+		double dudx = surface_velocity_0.x() - surface_velocity_1.x();
+		double dvdx = surface_velocity_0.y() - surface_velocity_1.y();
+		double dwdx = surface_velocity_0.z() - surface_velocity_1.z();
+		surface_velocity_0 = openvdb::tools::PointSampler::sample(exvel_grid->tree(), ijk + openvdb::Vec3R(0, 1, 0));
+		//surface_velocity_0 = surface_velocity_0 - surface_velocity_0.projection(normal);
+		surface_velocity_1 = openvdb::tools::PointSampler::sample(exvel_grid->tree(), ijk + openvdb::Vec3R(0, -1, 0));
+		//surface_velocity_1 = surface_velocity_1 - surface_velocity_1.projection(normal);
+		double dudy = surface_velocity_0.x() - surface_velocity_1.x();
+		double dvdy = surface_velocity_0.y() - surface_velocity_1.y();
+		double dwdy = surface_velocity_0.z() - surface_velocity_1.z();
+		surface_velocity_0 = openvdb::tools::PointSampler::sample(exvel_grid->tree(), ijk + openvdb::Vec3R(0, 0, 1));
+		//surface_velocity_0 = surface_velocity_0 - surface_velocity_0.projection(normal);
+		surface_velocity_1 = openvdb::tools::PointSampler::sample(exvel_grid->tree(), ijk + openvdb::Vec3R(0, 0, -1));
+		//surface_velocity_1 = surface_velocity_1 - surface_velocity_1.projection(normal);
+		double dudz = surface_velocity_0.x() - surface_velocity_1.x();
+		double dvdz = surface_velocity_0.y() - surface_velocity_1.y();
+		double dwdz = surface_velocity_0.z() - surface_velocity_1.z();
+		//openvdb::math::Mat3<double> jacobi = openvdb::math::Mat3< double >(dudx, dudy, dudz, dvdx, dvdy, dvdz, dwdx, dwdy, dwdz);
+		
+		openvdb::Vec3R external_velocity = openvdb::tools::PointSampler::sample(exvel_grid->tree(), ijk);
+		openvdb::Vec3R oldVelocity = iter.getValue();
+		openvdb::Vec3R newVelocity = openvdb::Vec3R(
+			dudx*oldVelocity.x() + dudy*oldVelocity.y() + dudz*oldVelocity.z(),
+			dvdx*oldVelocity.x() + dvdy*oldVelocity.y() + dvdz*oldVelocity.z(),
+			dwdx*oldVelocity.x() + dwdy*oldVelocity.y() + dwdz*oldVelocity.z());
+		iter.setValue(newVelocity);
+	}
+};
 class Diverge {
 private:
 	const openvdb::math::Transform targetTransform;
@@ -69,18 +141,18 @@ public:
 		surface_velocity_0 = surface_velocity_0 - surface_velocity_0.projection(normal);
 		surface_velocity_1 = (velocityAccessor->getValue((iter.getCoord() + openvdb::Coord(-1, 0, 0))));
 		surface_velocity_1 = surface_velocity_1 - surface_velocity_1.projection(normal);
-		float dudx = surface_velocity_0.x() - surface_velocity_1.x();
+		double dudx = surface_velocity_0.x() - surface_velocity_1.x();
 		surface_velocity_0 = (velocityAccessor->getValue((iter.getCoord() + openvdb::Coord(0, 1, 0))));
 		surface_velocity_0 = surface_velocity_0 - surface_velocity_0.projection(normal);
 		surface_velocity_1 = (velocityAccessor->getValue((iter.getCoord() + openvdb::Coord(0, -1, 0))));
 		surface_velocity_1 = surface_velocity_1 - surface_velocity_1.projection(normal);
-		float dvdy = surface_velocity_0.y() - surface_velocity_1.y();
+		double dvdy = surface_velocity_0.y() - surface_velocity_1.y();
 		surface_velocity_0 = (velocityAccessor->getValue((iter.getCoord() + openvdb::Coord(0, 0, 1))));
 		surface_velocity_0 = surface_velocity_0 - surface_velocity_0.projection(normal);
 		surface_velocity_1 = (velocityAccessor->getValue((iter.getCoord() + openvdb::Coord(0, 0, -1))));
 		surface_velocity_1 = surface_velocity_1 - surface_velocity_1.projection(normal);
-		float dwdz = surface_velocity_0.z() - surface_velocity_1.z();
-		float divergence = (dudx + dvdy + dwdz) / (2.0f * targetTransform.voxelSize().x());
+		double dwdz = surface_velocity_0.z() - surface_velocity_1.z();
+		double divergence = (dudx + dvdy + dwdz) / (2.0f * targetTransform.voxelSize().x());
 		accessor.setValue(iter.getCoord(), divergence);
 	}
 
