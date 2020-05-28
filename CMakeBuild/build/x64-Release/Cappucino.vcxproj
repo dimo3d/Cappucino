@@ -194,6 +194,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="..\..\..\..\openvdb\openvdb_houdini\houdini\ParmFactory.h" />
     <ClInclude Include="..\..\..\..\openvdb\openvdb_houdini\houdini\SOP_NodeVDB.h" />
     <ClInclude Include="..\..\..\Diverge.h" />
+    <ClInclude Include="..\..\..\PoissonSolver2D.h" />
     <ClInclude Include="..\..\..\Utils.h" />
     <ClInclude Include="..\..\..\vdbApplyCurl.h" />
     <ClInclude Include="..\..\..\vdbCrossProduct.h" />
