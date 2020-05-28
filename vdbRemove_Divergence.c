@@ -101,21 +101,21 @@ namespace {
 		
 		
 		openvdb::FloatGrid::Ptr
-			sourceGrid = external_divergencegrid->deepCopy();
-		openvdb::FloatGrid::Grid::Ptr divGrid = openvdb::FloatGrid::Grid::create(*velocityGrid);
+			external_divGrid = external_divergencegrid->deepCopy();
+		openvdb::FloatGrid::Grid::Ptr internal_divGrid = openvdb::FloatGrid::Grid::create(*velocityGrid);
 
 		std::string gridName = velocityGrid->getName();
 		// Iterate over all active values.
 	
 		
 	
-		openvdb::tools::transformValues(velocityGrid->cbeginValueOn(), *divGrid, Diverge(velocityGrid->transform(), velocityGrid, gradient_grid));
+		openvdb::tools::transformValues(velocityGrid->cbeginValueOn(), *internal_divGrid, Diverge(velocityGrid->transform(), velocityGrid, gradient_grid));
 
-		openvdb::FloatGrid::Grid::Ptr targetGrid = openvdb::FloatGrid::Grid::create(*divGrid);
+		openvdb::FloatGrid::Grid::Ptr external_divGrid_transformed = openvdb::FloatGrid::Grid::create(*internal_divGrid);
 		// Get the source and target grids' index space to world space transforms.
 		const openvdb::math::Transform
-			&sourceXform = sourceGrid->transform(),
-			&targetXform = targetGrid->transform();
+			&sourceXform = external_divGrid->transform(),
+			&targetXform = external_divGrid_transformed->transform();
 		// Compute a source grid to target grid transform.
 		// (For this example, we assume that both grids' transforms are linear,
 		// so that they can be represented as 4 x 4 matrices.)
@@ -126,12 +126,12 @@ namespace {
 		openvdb::tools::GridTransformer transformer(xform);
 		// Resample using trilinear interpolation.
 		transformer.transformGrid<openvdb::tools::BoxSampler, openvdb::FloatGrid>(
-			*sourceGrid, *targetGrid);
+			*external_divGrid, *external_divGrid_transformed);
 		
 		// Prune the target tree for optimal sparsity.
-		targetGrid->tree().prune();
+		external_divGrid_transformed->tree().prune();
 
-		openvdb::FloatGrid::Ptr diffDivergence = divGrid->deepCopy();
+		openvdb::FloatGrid::Ptr diffDivergence = internal_divGrid->deepCopy();
 		// Define a local function that subtracts two floating-point values.
 		struct Local {
 			static inline void diff(const float& a, const float& b, float& result) {
@@ -141,7 +141,7 @@ namespace {
 		
 		// Compute the difference between corresponding voxels of aGrid and bGrid
 		// and store the result in aGrid, leaving bGrid empty.
-		diffDivergence->tree().combine(targetGrid->tree(), Local::diff);
+		diffDivergence->tree().combine(external_divGrid_transformed->tree(), Local::diff);
 		openvdb::math::pcg::State state = openvdb::math::pcg::terminationDefaults<myVectorElementType>();
 		state.iterations = iterations;
 		state.relativeError = state.absoluteError = openvdb::math::Delta<myVectorElementType>::value();
