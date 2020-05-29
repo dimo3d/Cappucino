@@ -162,7 +162,7 @@ namespace {
 
 
 		// Iterate over all active values.
-		openvdb::tools::foreach(gradientOfPressure->beginValueOn(), ProjectVectorToSurface( gradient_grid, gradientOfPressure->transform()), true, 0);
+		openvdb::tools::foreach(gradientOfPressure->beginValueOn(), ProjectVectorToSurface( gradient_grid, gradientOfPressure->transform(),/*keepLength=*/false), true, 0);
 
 		{
 			std::vector<myVectorLeafNodeType*> velocityNodes;
@@ -177,7 +177,7 @@ namespace {
 			tbb::parallel_for(tbb::blocked_range<size_t>(0, velocityNodes.size()),
 				CorrectVelocityOp<myVectorTreeType>(&velocityNodes[0], gradientOfPressure, dx));
 			
-			openvdb::tools::foreach(velocityGrid->beginValueOn(), ProjectVectorToSurface(gradient_grid, velocityGrid->transform()), true, 0);
+			//openvdb::tools::foreach(velocityGrid->beginValueOn(), ProjectVectorToSurface(gradient_grid, velocityGrid->transform()), true, 0);
 
 			
 		}
