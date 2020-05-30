@@ -135,7 +135,7 @@ namespace {
 		// Define a local function that subtracts two floating-point values.
 		struct Local {
 			static inline void diff(const float& a, const float& b, float& result) {
-				result = a - b;
+				result = a + b;
 			}
 		};
 		
