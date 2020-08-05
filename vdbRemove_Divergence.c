@@ -148,9 +148,13 @@ namespace {
 
 		typedef openvdb::math::pcg::JacobiPreconditioner<openvdb::tools::poisson::LaplacianMatrix> PCT;
 
+		//openvdb::FloatTree::Ptr pressure =
+		//	openvdb::tools::poisson::solveWithBoundaryConditionsAndPreconditioner2D<PCT>(
+		//		diffDivergence->tree(), DirichletOp(),gradient_grid->tree(), state, interrupter);
 		openvdb::FloatTree::Ptr pressure =
-			openvdb::tools::poisson::solveWithBoundaryConditionsAndPreconditioner2D<PCT>(
-				diffDivergence->tree(), DirichletOp(),gradient_grid->tree(), state, interrupter);
+			openvdb::tools::poisson::solveWithBoundaryConditionsAndPreconditioner<PCT>(
+				diffDivergence->tree(), DirichletOp(), state, interrupter);
+
 
 		openvdb::FloatGrid::Ptr pressureGrid = openvdb::FloatGrid::create(pressure);
 		pressureGrid->setTransform(velocityGrid->transform().copy());
