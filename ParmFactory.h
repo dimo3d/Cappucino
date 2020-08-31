@@ -52,7 +52,7 @@
 #else
   #include <openvdb/Platform.h>
 #endif
-#include <boost/shared_ptr.hpp>
+#include <hboost/shared_ptr.hpp>
 #include <map>
 #include <string>
 #include <vector>
@@ -64,7 +64,7 @@
 	#define OPENVDB_HOUDINI_API
     #endif
 #endif
-
+#define boost hboost
 
 class GU_Detail;
 class OP_OperatorTable;
