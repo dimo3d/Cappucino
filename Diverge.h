@@ -35,9 +35,10 @@ struct CrossProduct {
 struct ProjectVectorToSurface {
 	openvdb::Vec3SGrid::ConstPtr grad_grid;
 	openvdb::math::Transform trans;
+	bool keepLength;
 	ProjectVectorToSurface(
-		openvdb::Vec3SGrid::ConstPtr grad_g, openvdb::math::Transform tr
-	) : grad_grid(grad_g), trans(tr)
+		openvdb::Vec3SGrid::ConstPtr grad_g, openvdb::math::Transform tr, bool kL = true
+	) : grad_grid(grad_g), trans(tr), keepLength(kL)
 	{}
 
 	inline void operator()(const openvdb::Vec3SGrid::ValueOnIter iter) const {
@@ -53,9 +54,13 @@ struct ProjectVectorToSurface {
 		float length = oldVelocity.length();
 		normal.normalize();
 		openvdb::Vec3f projected_Velocity = oldVelocity - oldVelocity.projection(normal);
-		projected_Velocity.normalize();
+		if (keepLength)
+			{ 
+			projected_Velocity.normalize();
+			projected_Velocity *= length;
 
-		iter.setValue(projected_Velocity * length);
+			}
+		iter.setValue(projected_Velocity);
 	}
 };
 struct applyJacobiMatrix {

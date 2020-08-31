@@ -29,7 +29,7 @@
 #include <openvdb/math/ConjGradient.h> // for JacobiPreconditioner
 
 #include <openvdb/tools/LevelSetUtil.h> // for tools::sdfInteriorMask()
-#include <openvdb/tools/PoissonSolver.h>
+#include <PoissonSolver2D.h>
 #include <openvdb/tools/GridTransformer.h>
 #include <openvdb/tools/Prune.h>
 #include <openvdb/tools/Composite.h>

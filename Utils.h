@@ -39,9 +39,9 @@
 #include <OP/OP_Node.h> // for OP_OpTypeId
 #include <UT/UT_Interrupt.h>
 #include <openvdb/openvdb.h>
-#include <boost/function.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/type_traits/is_const.hpp>
+#include <hboost/function.hpp>
+#include <hboost/shared_ptr.hpp>
+#include <hboost/type_traits/is_const.hpp>
 
 
 #ifdef SESI_OPENVDB
@@ -50,7 +50,7 @@
     #define OPENVDB_HOUDINI_API
 #endif
 #endif
-
+#define boost hboost
 class GEO_PrimVDB;
 class GU_Detail;
 class UT_String;
